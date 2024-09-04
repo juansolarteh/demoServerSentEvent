@@ -25,7 +25,6 @@ export class EventSocketServiceService implements OnDestroy {
       switch (message) {
         case 'exist-resource-session-on-write': alert("Un usuario ya esta editando o creando elementos para el empleado " + resourceOwnerId); break;
         case 'state-change-executed': this.stateChange.next(true); break;
-        case 'exist-resource-session-on-read':this.stateChange.next(false);break;
         default: console.log(message);
       }
     };
