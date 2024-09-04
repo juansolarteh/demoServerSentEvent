@@ -1,11 +1,11 @@
-import { Injectable, OnDestroy, OnInit } from '@angular/core';
-import { Subject, take, timeInterval } from 'rxjs';
+import { Injectable, OnDestroy } from '@angular/core';
+import { Subject, take } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class EventSocketServiceService implements OnDestroy {
-  private url = 'ws://localhost:8090/';
+  private url = 'ws://localhost:8080/event-concurrency';
   private webSocket: WebSocket | null = null;
   private stateChange: Subject<boolean> = new Subject<boolean>();
 
@@ -19,12 +19,13 @@ export class EventSocketServiceService implements OnDestroy {
 
   connect(eventResource: string, resourceOwnerId: string) {
     if (this.webSocket) this.disconnect();
-    this.webSocket = new WebSocket(`${this.url}event-concurrency?resourceId=${resourceOwnerId}&eventResource=${eventResource}`);
+    this.webSocket = new WebSocket(`${this.url}?resourceId=${resourceOwnerId}&eventResource=${eventResource}`);
     this.webSocket.onmessage = (event) => {
       const message: string = event.data;
       switch (message) {
-        case 'exist-resource-session-on-write': alert("Un usuario ya esta editando o creando elementos para el empleado " + resourceOwnerId); break;
+        case 'exist-resource-session-on-write': this.stateChange.next(false); break;
         case 'state-change-executed': this.stateChange.next(true); break;
+        case 'reload-resource': break;
         default: console.log(message);
       }
     };

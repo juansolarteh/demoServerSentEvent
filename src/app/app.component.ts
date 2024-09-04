@@ -27,7 +27,7 @@ export class AppComponent {
   senEditMessage() {
     this.eventSocketSvc.changeStateResponse.subscribe(
       result => {
-        if (!result) alert("Un usuario ya esta leyendo elementos para el empleado " + this.resourceOwnerId);
+        if (!result) alert("Un usuario ya esta editando o creando elementos para el empleado " + this.resourceOwnerId);
         else this.buttonSave = true;
       }
     );
