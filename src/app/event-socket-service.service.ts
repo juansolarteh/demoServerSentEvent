@@ -25,7 +25,7 @@ export class EventSocketServiceService implements OnDestroy {
       switch (message) {
         case 'exist-resource-session-on-write': this.stateChange.next(false); break;
         case 'state-change-executed': this.stateChange.next(true); break;
-        case 'reload-resource': break;
+        case 'reload-resource': console.log(message); break;
         default: console.log(message);
       }
     };
