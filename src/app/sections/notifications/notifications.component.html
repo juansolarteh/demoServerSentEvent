@@ -1,0 +1,6 @@
+<button (click)="conectar()">Conectar</button>
+<button (click)="desconectar()">Desonectar</button>
+<br>
+@for (item of onRegistrationEmployees; track $index) {
+    <P>{{$index}} - {{item | json}}</P>
+}

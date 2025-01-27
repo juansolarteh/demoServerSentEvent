@@ -1,18 +1,10 @@
-<label for="eventResource">Recurso: </label>
-<select [(ngModel)]="eventResource">
-  <option value="HIRING">hiring</option>
-  <option value="BENEFICIARY">beneficiary</option>
-  <option value="PAYROLL_ADJUSTMENT">payroll-adjustment</option>
-</select>
-<label for="eventResource">Id del recurso: </label>
-<input type="text" name="resourceOwnerId" id="resourceOwnerId" [(ngModel)]="resourceOwnerId">
-<button (click)="connect()">Conectar</button>
-<button (click)="disconnect()">Desconectar</button>
-<button *ngIf="!buttonSave; else save" (click)="sendEditMessage()">Editar</button>
-<ng-template #save>
-  <button (click)="sendCancelMessage()">Cancelar</button>
-  Guardando o Editando recurso {{resourceOwnerId}}...
-</ng-template>
-<br>
 <label for="token">token: </label>
 <textarea [(ngModel)]="token" id="token"></textarea>
+<br>
+<h2>Sección de prueba de concurrencia</h2>
+<app-concurrency-section [token]="token"></app-concurrency-section>
+<br>
+<h2>Sección de prueba de observación de registro</h2>
+<app-observable-registration-section [token]="token"></app-observable-registration-section>
+<h2>Notificaciones</h2>
+<app-notifications [token]="token"></app-notifications>

@@ -1,39 +1,31 @@
 import { Injectable } from '@angular/core';
 import { Client, Message, StompSubscription } from '@stomp/stompjs';
-import { Subject, take } from 'rxjs';
+import { Subject } from 'rxjs';
 import SockJS from 'sockjs-client';
+import { OnRegistrationEmployee } from '../models/OnEmployeeRegistration';
 import { v4 as uuidv4 } from 'uuid';
-
-interface MessageReply {
-  success: boolean,
-  state: string
-}
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
-export class StompWebSocketService {
-  private url = 'http://192.168.52.50:8081/ws/event-concurrency';
+export class NotificationsService {
+  private url = environment.webSocketUrl;
   private webSocket: Client | null = null;
-  private stateChange: Subject<MessageReply> = new Subject<MessageReply>();
-  private resource = "";
-  private resourceId = "";
+  private _notifications: Subject<OnRegistrationEmployee[]> = new Subject<OnRegistrationEmployee[]>();
   private token = "";
-  private uniqueId = "";
   private callbackSubsccription: StompSubscription | undefined;
+  private uniqueId = "";
 
-
-  get changeStateResponse() {
-    return this.stateChange.asObservable();
+  get notifications() {
+    return this._notifications.asObservable();
   }
 
   ngOnDestroy(): void {
     this.disconnect();
   }
-  //brokerURL: `${this.url}?resourceId=${resourceOwnerId}&eventResource=${eventResource}`,
-  connect(resource: string, resourceId: string, token: string) {
-    this.resource = resource;
-    this.resourceId = resourceId;
+
+  connect(token: string) {
     this.token = `Bearer ${token}`;
     this.uniqueId = uuidv4();
     if (this.webSocket) this.disconnect();
@@ -46,32 +38,39 @@ export class StompWebSocketService {
       debug: (str) => {
         console.log(str);
       },
-      webSocketFactory: () => new SockJS(this.url),
+      webSocketFactory: () => new SockJS(this.url, null, {
+        transports: ['websocket'] // Limitar los transportes a WebSocket
+      }),
     });
 
     // Establecer el comportamiento cuando la conexión esté lista
     this.webSocket.onConnect = (frame) => {
       console.log('Conexión STOMP establecida:', frame);
 
-      this.callbackSubsccription = this.webSocket?.subscribe(`/user/${this.uniqueId}/callback`, (message: Message) => {
-        const sessionId = message.body;
-        this.webSocket?.subscribe(`/topic/reload-resource/${resource}/${resourceId}`, (message: Message) => {
+      this.callbackSubsccription = this.webSocket?.subscribe(`/user/${this.uniqueId}/notification-callback`, (message: Message) => {
+        const response: OnRegistrationEmployee[] = JSON.parse(message.body);
+        this._notifications.next(response);
+
+        this.webSocket?.subscribe(`/topic/notification/on-registration-employee`, (message: Message) => {
           console.log('Mensaje recibido:', message.body);
-        });
-        this.webSocket?.subscribe(`/user/${sessionId}/reply`, (message: Message) => {
-          const response: MessageReply = JSON.parse(message.body);
-          this.stateChange.next(response);
-          console.log('Mensaje recibido:', response);
-        });
+          const response: OnRegistrationEmployee[] = JSON.parse(message.body);
+          this._notifications.next(response);
+        },
+          {
+            Authorization: this.token
+          });
 
         this.callbackSubsccription?.unsubscribe();
         this.callbackSubsccription = undefined;
+      }, {
+        Authorization: this.token
       });
 
       this.webSocket?.publish({
-        destination: `/app/completed-subscription-callback`,
+        destination: `/app/completed-notification-subscription`,
         body: "READ",
         headers: {
+          Authorization: this.token,
           uniqueId: this.uniqueId
         }
       });
@@ -84,20 +83,6 @@ export class StompWebSocketService {
 
     // Conectar al WebSocket
     this.webSocket.activate();
-  }
-
-  // Método para enviar un mensaje por WebSocket
-  changeStateView(action: string) {
-    console.log('Enviando mensaje por WebSocket...');
-    if (this.webSocket && this.webSocket.active) {
-      this.webSocket.publish({
-        destination: `/app/${this.resource}/${this.resourceId}`,
-        body: action,
-        headers: {
-          "Authorization": this.token
-        }
-      });
-    }
   }
 
   disconnect() {

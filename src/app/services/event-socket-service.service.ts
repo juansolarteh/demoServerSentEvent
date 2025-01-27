@@ -1,11 +1,12 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { Subject, take } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class EventSocketServiceService implements OnDestroy {
-  private url = 'ws://localhost:8080/event-concurrency';
+  private url = environment.webSocketUrl;
   private webSocket: WebSocket | null = null;
   private stateChange: Subject<boolean> = new Subject<boolean>();
 

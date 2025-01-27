@@ -1,0 +1,15 @@
+<label for="eventResource">Recurso: </label>
+<select [(ngModel)]="eventResource">
+  <option value="HIRING">hiring</option>
+  <option value="BENEFICIARY">beneficiary</option>
+  <option value="PAYROLL_ADJUSTMENT">payroll-adjustment</option>
+</select>
+<label for="eventResource">Id del recurso: </label>
+<input type="text" name="resourceOwnerId" id="resourceOwnerId" [(ngModel)]="resourceOwnerId">
+<button (click)="connect()">Conectar</button>
+<button (click)="disconnect()">Desconectar</button>
+<button *ngIf="!buttonSave; else save" (click)="sendEditMessage()">Editar</button>
+<ng-template #save>
+  <button (click)="sendCancelMessage()">Cancelar</button>
+  Guardando o Editando recurso {{resourceOwnerId}}...
+</ng-template>
